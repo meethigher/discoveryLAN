@@ -19,13 +19,13 @@ public class ResolveRunnable implements Runnable {
 
     private final List<String> ipList;
 
-    private final LinkedBlockingQueue<String> queue;
+    private final List<String> container;
 
     private final CountDownLatch countDownLatch;
 
-    public ResolveRunnable(List<String> ipList, LinkedBlockingQueue<String> queue, CountDownLatch countDownLatch) {
+    public ResolveRunnable(List<String> ipList, List<String> container, CountDownLatch countDownLatch) {
         this.ipList = ipList;
-        this.queue = queue;
+        this.container = container;
         this.countDownLatch = countDownLatch;
     }
 
@@ -39,7 +39,7 @@ public class ResolveRunnable implements Runnable {
                 if (inetAddress.isReachable(2000)) {
                     long endTime = System.currentTimeMillis();
                     String format = String.format("%s 耗时 %s ms", ip, endTime - startTime);
-                    queue.add(format);
+                    container.add(format);
                     log.info("{} is reachable", format);
                 }
             } catch (Exception e) {
