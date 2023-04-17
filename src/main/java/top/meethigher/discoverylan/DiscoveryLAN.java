@@ -27,6 +27,26 @@ public class DiscoveryLAN {
 
     private static ThreadPoolExecutor executor;
 
+    public static final int[] ports = new int[]{
+            80,// httpPort
+            443,// httpsPort
+            22,// sshPort
+            21,// ftpPort
+            25,// smtpPort
+            3306,// mysqlPort
+            5432,// postgresqlPort
+            6379,// redisPort
+            27017,// mongodbPort
+            9092,// kafkaPort
+            2181,// zookeeperPort
+            11211,// memcachedPort
+            9200,// elasticsearchPort
+            5601,// kibanaPort
+            5044,// logstashPort
+            5672,// rabbitmqPort
+            8080,//tomcatPort
+    };
+
     public static void run(Application app) throws Exception {
         List<String> allIP = IPCalcFreedom.allIP(app.getIp());
         int thread = ((allIP.size() - 1) / app.getBatch() + 1);
@@ -43,19 +63,19 @@ public class DiscoveryLAN {
                 @Override
                 public void run() {
                     try {
-                        exec(app.getBatch(), thread, app.getIp(), allIP);
+                        exec(app.isScanPort(), app.getBatch(), thread, app.getIp(), allIP);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }, 0L, app.getDelay() * 60 * 1000L);
         } else {
-            exec(app.getBatch(), thread, app.getIp(), allIP);
+            exec(app.isScanPort(), app.getBatch(), thread, app.getIp(), allIP);
             executor.shutdown();
         }
     }
 
-    private static void exec(int batch, int thread, String ip, List<String> allIP) throws InterruptedException {
+    private static void exec(boolean scanPort, int batch, int thread, String ip, List<String> allIP) throws InterruptedException {
         CountDownLatch resolve = new CountDownLatch(thread);
         int size = allIP.size();
         log.info("自动分配 {} 个线程扫描局域网ip", thread);
@@ -64,7 +84,7 @@ public class DiscoveryLAN {
             int startIndex = i * batch;
             int endIndex = Math.min(startIndex + batch, size);
             List<String> subList = allIP.subList(startIndex, endIndex);
-            executor.execute(new ResolveRunnable(subList, container, resolve));
+            executor.execute(new ResolveRunnable(subList, container, resolve, scanPort));
         }
 
         resolve.await();
@@ -75,8 +95,12 @@ public class DiscoveryLAN {
         if (file.exists()) {
             file.delete();
         }
-
-        String[] array = container.toArray(new String[0]);
+        //这个写法有坑，nullPoint. https://www.zhihu.com/zvideo/1335864973877723136
+        //String[] array = container.toArray(new String[0]);
+        String[] array = new String[container.size()];
+        for (int i = 0; i < container.size(); i++) {
+            array[i] = container.get(i);
+        }
         IPQuickSort.quickSort(array, 0, array.length - 1);
 
         try (FileChannel channel = new RandomAccessFile(fileName, "rw").getChannel()) {

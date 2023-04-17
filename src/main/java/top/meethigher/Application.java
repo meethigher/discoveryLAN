@@ -24,6 +24,9 @@ public class Application {
     @Parameter(names = "-d", description = "扫描间隔, 单位分钟(添加--timer参数后生效)", validateWith = PositiveInteger.class)
     private int delay = 30;
 
+    @Parameter(names = "--scan", description = "是否扫描端口")
+    private boolean scanPort = false;
+
     @Parameter(names = "--timer", description = "开启定时扫描任务")
     private boolean timer = false;
 
@@ -71,6 +74,13 @@ public class Application {
         this.help = help;
     }
 
+    public boolean isScanPort() {
+        return scanPort;
+    }
+
+    public void setScanPort(boolean scanPort) {
+        this.scanPort = scanPort;
+    }
 
     public static void main(String... args) throws Exception {
         Application app = new Application();

@@ -1,8 +1,5 @@
 package top.meethigher.discoverylan;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * IP地址快速排序
  *
@@ -39,8 +36,8 @@ public class IPQuickSort {
 
 
     private static boolean lt(String font, String back) {
-        String[] fontArr = font.split(" ")[0].split("\\.");
-        String[] backArr = back.split(" ")[0].split("\\.");
+        String[] fontArr = font.split("_")[0].split("\\.");
+        String[] backArr = back.split("_")[0].split("\\.");
 
         for (int i = 0; i < 4; i++) {
             int a = Integer.parseInt(fontArr[i]);
