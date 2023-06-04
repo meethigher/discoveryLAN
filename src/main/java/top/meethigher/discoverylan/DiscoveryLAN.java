@@ -10,10 +10,7 @@ import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -79,7 +76,8 @@ public class DiscoveryLAN {
         CountDownLatch resolve = new CountDownLatch(thread);
         int size = allIP.size();
         log.info("自动分配 {} 个线程扫描局域网ip", thread);
-        List<String> container = new LinkedList<>();
+        //多线程操作，需要用到list add操作，add不是原子操作，会存在问题。因此给他包装成线程安全
+        List<String> container = Collections.synchronizedList(new LinkedList<>());
         for (int i = 0; i < thread; i++) {
             int startIndex = i * batch;
             int endIndex = Math.min(startIndex + batch, size);
@@ -95,12 +93,8 @@ public class DiscoveryLAN {
         if (file.exists()) {
             file.delete();
         }
-        //这个写法有坑，nullPoint. https://www.zhihu.com/zvideo/1335864973877723136
-        //String[] array = container.toArray(new String[0]);
-        String[] array = new String[container.size()];
-        for (int i = 0; i < container.size(); i++) {
-            array[i] = container.get(i);
-        }
+        //注意这种写法存在的问题 https://www.zhihu.com/zvideo/1335864973877723136
+        String[] array = container.toArray(new String[0]);
         IPQuickSort.quickSort(array, 0, array.length - 1);
 
         try (FileChannel channel = new RandomAccessFile(fileName, "rw").getChannel()) {
