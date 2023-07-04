@@ -24,7 +24,7 @@ public class DiscoveryLAN {
 
     private static ThreadPoolExecutor executor;
 
-    public static final int[] ports = new int[]{
+    public static int[] ports = new int[]{
             80,// httpPort
             443,// httpsPort
             22,// sshPort
@@ -45,6 +45,21 @@ public class DiscoveryLAN {
     };
 
     public static void run(Application app) throws Exception {
+        String port = app.getPort();
+        if (port != null) {
+            if (port.contains(",")) {
+                String[] split = port.split(",");
+                int[] tempPort = new int[split.length];
+                for (int i = 0; i < split.length; i++) {
+                    tempPort[i] = Integer.parseInt(split[i]);
+                }
+                ports = tempPort;
+            } else {
+                ports = new int[]{
+                        Integer.parseInt(port)
+                };
+            }
+        }
         List<String> allIP = IPCalcFreedom.allIP(app.getIp());
         int thread = ((allIP.size() - 1) / app.getBatch() + 1);
         executor = new ThreadPoolExecutor(thread, thread, 60, TimeUnit.SECONDS, new LinkedBlockingQueue<>(), new ThreadFactory() {

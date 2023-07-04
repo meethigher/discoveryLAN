@@ -24,6 +24,9 @@ public class Application {
     @Parameter(names = "-d", description = "扫描间隔, 单位分钟(添加--timer参数后生效)", validateWith = PositiveInteger.class)
     private int delay = 30;
 
+    @Parameter(names = "-p", description = "指定端口, 多个请使用英文逗号分隔")
+    private String port;
+
     @Parameter(names = "--scan", description = "是否扫描端口")
     private boolean scanPort = false;
 
@@ -80,6 +83,14 @@ public class Application {
 
     public void setScanPort(boolean scanPort) {
         this.scanPort = scanPort;
+    }
+
+    public String getPort() {
+        return port;
+    }
+
+    public void setPort(String port) {
+        this.port = port;
     }
 
     public static void main(String... args) throws Exception {
