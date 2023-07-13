@@ -3,6 +3,8 @@ package top.meethigher;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.beust.jcommander.validators.PositiveInteger;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import static top.meethigher.discoverylan.DiscoveryLAN.run;
 
@@ -12,11 +14,11 @@ import static top.meethigher.discoverylan.DiscoveryLAN.run;
  * @author chenchuancheng
  * @since 2023/4/3 20:46
  */
+@Data
 public class Application {
 
     @Parameter(names = "-ip", description = "ip地址,采用斜线记法")
     private String ip = "192.168.110.99/24";
-
 
     @Parameter(names = "-b", description = "一个线程测试连接数量", validateWith = PositiveInteger.class)
     private int batch = 10;
@@ -34,64 +36,11 @@ public class Application {
     private boolean timer = false;
 
 
+    @Parameter(names = "--hostname", description = "开启hostname显示, 受dns服务器影响, 不保证一定拿到")
+    private boolean hostname = false;
+
     @Parameter(names = "--help", help = true)
     private boolean help;
-
-    public int getDelay() {
-        return delay;
-    }
-
-    public void setDelay(int delay) {
-        this.delay = delay;
-    }
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public int getBatch() {
-        return batch;
-    }
-
-    public void setBatch(int batch) {
-        this.batch = batch;
-    }
-
-    public boolean isTimer() {
-        return timer;
-    }
-
-    public void setTimer(boolean timer) {
-        this.timer = timer;
-    }
-
-    public boolean isHelp() {
-        return help;
-    }
-
-    public void setHelp(boolean help) {
-        this.help = help;
-    }
-
-    public boolean isScanPort() {
-        return scanPort;
-    }
-
-    public void setScanPort(boolean scanPort) {
-        this.scanPort = scanPort;
-    }
-
-    public String getPort() {
-        return port;
-    }
-
-    public void setPort(String port) {
-        this.port = port;
-    }
 
     public static void main(String... args) throws Exception {
         Application app = new Application();

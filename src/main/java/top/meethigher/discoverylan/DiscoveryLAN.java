@@ -6,6 +6,8 @@ import top.meethigher.Application;
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.nio.channels.FileChannel;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -20,7 +22,18 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Slf4j
 public class DiscoveryLAN {
-    private final static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy_MM_dd_HH_mm");
+    private final static DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy年MM月dd日HH_mm");
+
+    /**
+     * String.format中
+     * %15s为占15个字节的长度，内容靠右对齐
+     * %-15s为占15个字节的长度，内容靠左对齐
+     * 第一个参数ip地址
+     * 第二个参数主机名
+     * 第三个参数可用端口
+     */
+    public static final String template = "[%-15s] --- 主机名[%s] --- 可用端口[%s]";
+
 
     private static ThreadPoolExecutor executor;
 
@@ -75,19 +88,20 @@ public class DiscoveryLAN {
                 @Override
                 public void run() {
                     try {
-                        exec(app.isScanPort(), app.getBatch(), thread, app.getIp(), allIP);
+                        exec(app.isScanPort(), app.isHostname(), app.getBatch(), thread, app.getIp(), allIP);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
             }, 0L, app.getDelay() * 60 * 1000L);
         } else {
-            exec(app.isScanPort(), app.getBatch(), thread, app.getIp(), allIP);
+            exec(app.isScanPort(), app.isHostname(), app.getBatch(), thread, app.getIp(), allIP);
             executor.shutdown();
         }
     }
 
-    private static void exec(boolean scanPort, int batch, int thread, String ip, List<String> allIP) throws InterruptedException {
+    private static void exec(boolean scanPort, boolean showHostName, int batch, int thread, String ip, List<String> allIP) throws InterruptedException {
+        final List<String> localIPList = getLocalIPList();
         CountDownLatch resolve = new CountDownLatch(thread);
         int size = allIP.size();
         log.info("自动分配 {} 个线程扫描局域网ip", thread);
@@ -97,7 +111,7 @@ public class DiscoveryLAN {
             int startIndex = i * batch;
             int endIndex = Math.min(startIndex + batch, size);
             List<String> subList = allIP.subList(startIndex, endIndex);
-            executor.execute(new ResolveRunnable(subList, container, resolve, scanPort));
+            executor.execute(new ResolveRunnable(subList, localIPList, container, resolve, scanPort, showHostName, template));
         }
 
         resolve.await();
@@ -122,5 +136,28 @@ public class DiscoveryLAN {
         }
         log.info("归档扫描结果=> {}", fileName);
         log.info("============================================================");
+    }
+
+    /**
+     * 获取本地所有ip
+     */
+    private static List<String> getLocalIPList() {
+        List<String> list = new ArrayList<>();
+        try {
+            Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+            while (networkInterfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = networkInterfaces.nextElement();
+                Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
+
+                while (inetAddresses.hasMoreElements()) {
+                    InetAddress inetAddress = inetAddresses.nextElement();
+                    String hostAddress = inetAddress.getHostAddress();
+                    list.add(hostAddress);
+                    log.info("本机ip地址: {}", hostAddress);
+                }
+            }
+        } catch (Exception ignore) {
+        }
+        return list;
     }
 }

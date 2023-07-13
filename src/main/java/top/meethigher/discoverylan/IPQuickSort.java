@@ -36,8 +36,8 @@ public class IPQuickSort {
 
 
     private static boolean lt(String font, String back) {
-        String[] fontArr = font.split("_")[0].split("\\.");
-        String[] backArr = back.split("_")[0].split("\\.");
+        String[] fontArr = font.replaceAll("\\[|\\]", "").split("---")[0].trim().split("\\.");
+        String[] backArr = back.replaceAll("\\[|\\]", "").split("---")[0].trim().split("\\.");
 
         for (int i = 0; i < 4; i++) {
             int a = Integer.parseInt(fontArr[i]);
